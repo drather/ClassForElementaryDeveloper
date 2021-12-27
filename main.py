@@ -16,7 +16,11 @@
 
 문제 제기 4: product 가 책임을 가지게끔 하자.
     - 딕셔너리 타이을 클래스(데이터 클래스) 객체로 변환하자.
+
+외부 의존성 대체
+- 1강: DB 를 대체할 수 있는 fakestoreapi.com 에 requests 모듈을 통해 request, response 를 받는다.
 """
+
 import dataclasses
 import traceback
 from abc import ABC, abstractmethod
