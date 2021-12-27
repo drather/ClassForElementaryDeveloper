@@ -73,3 +73,32 @@ def test_take_out_product(grab_store):
 
     assert product == Product(name="키보드", price=30000)
     assert grab_store._products.get(product_id, None) is None
+
+
+def test_sell_product_well(grab_store):
+    """
+    통합 테스트 코드
+    통합 테스트로 넘어올 수록, 로직이 복잡해지고 발생할 수 있는 예외도 많아진다.
+    따라서, 시간이 걸리더라도 신경써서 작성하는 것이 안전한 코드를 만드는 방법이다.
+    :param grab_store:
+    :return:
+    """
+    product_id = 1
+    pre_money = grab_store._money
+    product = grab_store.show_product(product_id=product_id)
+    price = product.price
+
+    _product = grab_store.sell_product(product_id=product_id, money=price)
+
+    assert grab_store._money == pre_money + price
+    assert grab_store.show_product(product_id=product_id) is None
+
+
+def test_sell_product_not_found(grab_store):
+    product_id = 3
+    product = grab_store.show_product(product_id=product_id)
+
+    with pytest.raises(Exception):
+        grab_store.sell_product(product_id=product_id, money=0)
+
+
