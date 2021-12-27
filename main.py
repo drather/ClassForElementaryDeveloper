@@ -1,7 +1,6 @@
 """
 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
 
-상황
 문제 제기 1. 다른 Store 가 들어오면 어떻게 할까?
     - Store 를 추상화(상위 개념을 하나 만들어서, 객체들의 공통적인 특징을 모아놓음)
     - User 가 Store 에 대한 의존성을 주입받아야 한다.
@@ -60,47 +59,6 @@ class Store(ABC):
         :return:
         """
         pass
-
-
-class GrabStore(Store):
-    def __init__(self, products):
-        self._money = 0
-        self.name = "그랩마켓"
-        self._products = products
-
-    def set_money(self, money):
-        self._money = money
-
-    def set_products(self, products):
-        self._products = products
-
-    def show_product(self, product_id):
-        return self._products.get(product_id, None)
-
-    def _take_money(self, money):
-        self._money += money
-
-    def sell_product(self, product_id, money):
-        product = self.show_product(product_id=product_id)
-
-        if not product:
-            raise Exception("상품이 없습니다")
-
-        self._take_money(money=money)
-        try:
-            _product = self._take_out_product(product_id=product_id)
-        except Exception as e:
-            self._return_money(money)
-            raise e
-
-        return _product
-
-    def _take_out_product(self, product_id):
-        product = self._products.pop(product_id)
-        return product
-
-    def _return_money(self, money):
-        self._money -= money
 
 
 class User:

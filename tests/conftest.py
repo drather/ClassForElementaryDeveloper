@@ -17,7 +17,6 @@ def grab_store():
     즉, 함수 실행 횟수가 grab_store 메서드의 실행 단위
     :return: 
     """
-
     return GrabStore(
         products={
             1: Product(name="키보드", price=30000),
