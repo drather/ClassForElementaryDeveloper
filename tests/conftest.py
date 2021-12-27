@@ -28,4 +28,4 @@ def grab_store():
 
 @pytest.fixture(scope="function")
 def user(grab_store):
-    return User(money=1000000, store=grab_store)
+    return User(money=100000, store=grab_store)

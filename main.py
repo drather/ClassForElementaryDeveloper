@@ -123,7 +123,10 @@ class User:
         return products
 
     def _give_money(self, money):
-        self._money -= money
+        if self._money < money:
+            raise Exception("위그든씨, 나는 돈이 없습니다.")
+        else:
+            self._money -= money
 
     def _take_money(self, money):
         self._money += money
