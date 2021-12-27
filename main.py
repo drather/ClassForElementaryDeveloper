@@ -14,9 +14,22 @@
 
 문제 제기 3: User 가 많은 행위를 책임지고 있다. Store 가 판매에 대한 책임을 가져야 한다.
     -  상점에서 상품을 판매하는 행위를 추상화하고, 구체적인 로직은 Store 의 메서드로 옮긴다.
+
+문제 제기 4: product 가 책임을 가지게끔 하자.
+    - 딕셔너리 타이을 클래스(데이터 클래스) 객체로 변환하자.
 """
+import dataclasses
 import traceback
 from abc import ABC, abstractmethod
+
+
+@dataclasses.dataclass
+class Product:
+    """
+    product 객체 생성을 쉽게하도록 하는 클래스
+    """
+    name: str
+    price: int
 
 
 class Store(ABC):
@@ -118,8 +131,8 @@ class User:
 
     def purchase_product(self, product_id):
         product = self.see_product(product_id=product_id)
-        price = product["price"]
-        if self._money >= product["price"]:
+        price = product.price
+        if self._check_money_enough(price):
             self._give_money(money=price)
             try:
                 my_product = self._store.sell_product(product_id=product_id, money=price)
@@ -134,20 +147,23 @@ class User:
         else:
             raise Exception("잔돈이 부족합니다")
 
+    def _check_money_enough(self, price):
+        return self._money >= price
+
 
 if __name__ == "__main__":
     store = GrabStore(
         products={
-            1: {"name": "키보드", "price": 30000},
-            2: {"name": "모니터", "price": 50000}
+            1: Product(name="키보드", price=30000),
+            2: Product(name="모니터", price=5000000)
         }
     )
 
     user = User(money=100000, store=store)
-    user.purchase_product(product_id=1)
+    user.purchase_product(product_id=2)
 
     print(f"user가 구매한 상품: {user.get_belongs()} ")
-
+    print(f"user 의 잔돈: {user.get_money()}")
 
 
 
