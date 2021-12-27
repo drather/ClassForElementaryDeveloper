@@ -4,9 +4,34 @@
     - Store 를 추상화(상위 개념을 하나 만들어서, 객체들의 공통적인 특징을 모아놓음)
     - User 가 Store 에 대한 의존성을 주입받아야 한다.
 """
+from abc import ABC, abstractmethod
 
 
-class GrabStore:
+class Store(ABC):
+    @abstractmethod
+    def __init__(self):
+        self.money = 0
+        self.name = ""
+        self.products = {}
+
+    @abstractmethod
+    def set_money(self, money):
+        pass
+
+    @abstractmethod
+    def set_products(self, products):
+        pass
+
+    @abstractmethod
+    def get_money(self):
+        pass
+
+    @abstractmethod
+    def get_products(self):
+        pass
+
+
+class GrabStore(Store):
     def __init__(self):
         self.money = 0
         self.name = "그랩마켓"
@@ -28,10 +53,32 @@ class GrabStore:
         return self.products
 
 
-class User:
+class FruitStore(Store):
     def __init__(self):
         self.money = 0
-        self.store = GrabStore()
+        self.name = "그랩마켓"
+        self.products = {
+            1: {"name": "바나나", "price": 30000},
+            2: {"name": "사과", "price": 50000},
+        }
+
+    def set_money(self, money):
+        self.money = money
+
+    def set_products(self, products):
+        self.products = products
+
+    def get_money(self):
+        return self.money
+
+    def get_products(self):
+        return self.products
+
+
+class User:
+    def __init__(self, store: Store):
+        self.money = 0
+        self.store = store
         self.belongs = []
 
     def set_money(self, money):
@@ -66,6 +113,9 @@ class User:
 
 
 if __name__ == "__main__":
-    user = User()
-    user.set_money(100000)
-    user.purchase_product(product_id=1)
+    user_a = User(store=GrabStore())
+    user_b = User(store=FruitStore())
+
+    user_a.set_money(100000)
+    user_b.set_money(2000000)
+
