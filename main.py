@@ -11,16 +11,20 @@
 
     => User 가 Store 의 속성에 직접 접근하지 못하게 함. 즉, 캡슐화
     => 또한, get, set 등이 메서드 이름을 좀 더 도메인에 맞게 수정함.
+
+문제 제기 3: User 가 많은 행위를 책임지고 있다. Store 가 판매에 대한 책임을 가져야 한다.
+    -  상점에서 상품을 판매하는 행위를 추상화하고, 구체적인 로직은 Store 의 메서드로 옮긴다.
 """
+import traceback
 from abc import ABC, abstractmethod
 
 
 class Store(ABC):
     @abstractmethod
     def __init__(self):
-        self.money = 0
+        self._money = 0
         self.name = ""
-        self.products = {}
+        self._products = {}
 
     @abstractmethod
     def show_product(self, product_id):
@@ -32,17 +36,11 @@ class Store(ABC):
         pass
 
     @abstractmethod
-    def give_product(self, product_id):
+    def sell_product(self, product_id, money):
         """
-        사용자에게 상품 주는 메서드
+        상점이 사용자에게 물건을 판매하는 행위
+        Validation 코드는 최소화
         :param product_id:
-        :return:
-        """
-
-    @abstractmethod
-    def take_money(self, money):
-        """
-        사용자에게 돈 받는 메서드
         :param money:
         :return:
         """
@@ -64,40 +62,75 @@ class GrabStore(Store):
     def show_product(self, product_id):
         return self._products[product_id]
 
-    def give_product(self, product_id):
-        self._products.pop(product_id) # products id 에 product_id 를 key 로 가지는 value 를 지운다.
-
-    def take_money(self, money):
+    def _take_money(self, money):
         self._money += money
+
+    def sell_product(self, product_id, money):
+        product = self.show_product(product_id=product_id)
+
+        if not product:
+            raise Exception("상품이 없습니다")
+
+        self._take_money(money=money)
+        try:
+            _product = self._take_out_product(product_id=product_id)
+        except Exception as e:
+            self._return_money(money)
+            raise e
+
+        return _product
+
+    def _take_out_product(self, product_id):
+        product = self._products.pop(product_id)
+        return product
+
+    def _return_money(self, money):
+        self._money -= money
 
 
 class User:
     def __init__(self, money, store: Store):
-        self.money = money
-        self.store = store
-        self.belongs = []
+        self._money = money
+        self._store = store
+        self._belongs = []
 
     def get_money(self):
-        return self.money
+        return self._money
 
     def get_belongs(self):
-        return self.belongs
+        return self._belongs
 
     def get_store(self):
-        return self.store
+        return self._store
 
     def see_product(self, product_id):
-        products = self.store.show_product(product_id=product_id)
+        products = self._store.show_product(product_id=product_id)
         return products
+
+    def _give_money(self, money):
+        self._money -= money
+
+    def _take_money(self, money):
+        self._money += money
+
+    def _add_belongs(self, belongs):
+        self._belongs.append(belongs)
 
     def purchase_product(self, product_id):
         product = self.see_product(product_id=product_id)
-        if self.money >= product["price"]:
-            self.store.give_product(product_id=product_id)  # 상점에서 상품 꺼내기
-            self.money -= product["price"]  # 사용자가 돈 내기
-            self.store.take_money(product["price"])  # 상점에서 돈 받기
-            self.belongs.append(product)
-            return product
+        price = product["price"]
+        if self._money >= product["price"]:
+            self._give_money(money=price)
+            try:
+                my_product = self._store.sell_product(product_id=product_id, money=price)
+                self._add_belongs(my_product)
+                return product
+
+            except Exception as e:
+                self._take_money(money=price)
+                print(f"구매 중 문제가 발생했습니다: {e}")
+                print(traceback.format_exc())
+
         else:
             raise Exception("잔돈이 부족합니다")
 
@@ -111,7 +144,6 @@ if __name__ == "__main__":
     )
 
     user = User(money=100000, store=store)
-
     user.purchase_product(product_id=1)
 
     print(f"user가 구매한 상품: {user.get_belongs()} ")
