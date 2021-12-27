@@ -1,6 +1,4 @@
 """
-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
-
 문제 제기 1. 다른 Store 가 들어오면 어떻게 할까?
     - Store 를 추상화(상위 개념을 하나 만들어서, 객체들의 공통적인 특징을 모아놓음)
     - User 가 Store 에 대한 의존성을 주입받아야 한다.
@@ -22,6 +20,8 @@ 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
 import dataclasses
 import traceback
 from abc import ABC, abstractmethod
+
+from GrabRealStore import GrabStore
 
 
 @dataclasses.dataclass
