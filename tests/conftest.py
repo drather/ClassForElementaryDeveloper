@@ -10,12 +10,14 @@ import pytest
 from main import GrabStore, Product, User
 from GrabRealStore import GrabStore
 
+API_URL = "https://fakestoreapi.com/products"
+
 
 @pytest.fixture(scope="function")
 def mock_products():
     return {
-        1: {"name":"키보드", "price":30000},
-        2: {"name":"모니터", "price":5000000}
+        1: {"title":"키보드", "price":30000},
+        2: {"title":"모니터", "price":5000000}
     }
 
 
@@ -29,8 +31,8 @@ def grab_store():
     return GrabStore()
     # return GrabStore(
     #     products={
-    #         1: Product(name="키보드", price=30000),
-    #         2: Product(name="모니터", price=5000000)
+    #         1: Product(title="키보드", price=30000),
+    #         2: Product(title="모니터", price=5000000)
     #     }
     # )
 

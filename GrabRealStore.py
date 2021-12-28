@@ -36,7 +36,7 @@ class Product:
     """
     product 객체 생성을 쉽게하도록 하는 클래스
     """
-    name: str
+    title: str
     price: int
 
 
@@ -54,7 +54,7 @@ class GrabStore(Store):
         res = requests.get(f"{self.url}/products/{product_id}")
         product = res.json()
 
-        return Product(name=product["name"], price=product["price"])
+        return Product(title=product["title"], price=product["price"])
 
     def _take_money(self, money):
         self._money += money
@@ -77,7 +77,7 @@ class GrabStore(Store):
     def _take_out_product(self, product_id):
         res = requests.delete(url=f"{self.url}/products/{product_id}")
         product = res.json()
-        return Product(name=product["title"], price=product["price"])
+        return Product(title=product["title"], price=product["price"])
 
     def _return_money(self, money):
         self._money -= money
