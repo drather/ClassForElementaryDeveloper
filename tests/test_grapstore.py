@@ -30,8 +30,10 @@ import pytest
 from main import GrabStore, Product
 from unittest import mock
 
+from tests.conftest import API_URL
 
-def test_show_product(grab_store, mock_products):
+
+def test_show_product(requests_mock, grab_store, mock_products):
     """
     파라미터로 주어진 grab_store 가, conftest.py 에서 grab_store 메서드를 의미한다.
     그럼, grab_store() 메서드가 실행되어 GrabStore 객체를 리턴하게 된다.
@@ -43,24 +45,31 @@ def test_show_product(grab_store, mock_products):
     mock_product = mock_products[product_id]
 
     # When
+    # 외부 의존성 대체 3강
     # with: 컨텍스트 매니저
-    # request.get 이 호출되면, mock_api 로 컨트롤하겠다는 뜻
+    # # request.get 이 호출되면, mock_api 로 컨트롤하겠다는 뜻
+    # with mock.patch("requests.get") as mock_api:
+    #     # request.get 호출되면,
+    #     # mock 객체가 이에 응답하여 미리 정해진 응답을 주게 된다.
+    #     res = mock_api.return_value
+    #     res.status_code = 200
+    #
+    #     # 결과값은 res.status_code 로 접근 가능
+    #     # res.json() 메소드의 결과가 실제로 데이터를 응답하는 것
+    #     # 따라서, res.json() 도 대체해야 함
+    #     res.json.return_value = mock_product
+    #
+    #     product = grab_store.show_product(product_id=product_id)
 
-    with mock.patch("requests.get") as mock_api:
-        # request.get 호출되면,
-        # mock 객체가 이에 응답하여 미리 정해진 응답을 주게 된다.
-        res = mock_api.return_value
-        res.status_code = 200
+    # When
+    # 외부 의존성 대체 4강: request-mock 활용
+    # 써놓은 url 에 요청을 보냈을 때, 미리 정한 json 객체를 응답으로 받아서 사용한다.
+    requests_mock.get(f"{API_URL}/{product_id}", json=mock_product)
 
-        # 결과값은 res.status_code 로 접근 가능
-        # res.json() 메소드의 결과가 실제로 데이터를 응답하는 것
-        # 따라서, res.json() 도 대체해야 함
-        res.json.return_value = mock_product
-
-        product = grab_store.show_product(product_id=product_id)
+    product = grab_store.show_product(product_id=product_id)
 
     # Then
-    assert product == Product(name=mock_product["name"], price=30000)
+    assert product == Product(title=mock_product["title"], price=30000)
 
 
 def test_give_money_expensive(user):
@@ -88,16 +97,18 @@ def test_return_money(grab_store):
     assert grab_store._money == pre_money - price
 
 
-def test_take_out_product(grab_store):
+def test_take_out_product(requests_mock, grab_store, mock_products):
     product_id = 1
+    mock_product = mock_products[product_id]
+    requests_mock.delete(url=f"{API_URL}/{product_id}", json=mock_product)
 
     product = grab_store._take_out_product(product_id=product_id)
 
-    assert product == Product(name="키보드", price=30000)
-    assert grab_store._products.get(product_id, None) is None
+    assert product == Product(title=mock_product["title"], price=mock_product["price"])
+    # assert grab_store._products.get(product_id, None) is None
 
 
-def test_sell_product_well(grab_store):
+def test_sell_product_well(requests_mock, grab_store, mock_products):
     """
     통합 테스트 코드
     통합 테스트로 넘어올 수록, 로직이 복잡해지고 발생할 수 있는 예외도 많아진다.
@@ -107,18 +118,28 @@ def test_sell_product_well(grab_store):
     """
     product_id = 1
     pre_money = grab_store._money
+    mock_product = mock_products[product_id]
+
+    # mocking
+    requests_mock.get(f"{API_URL}/{product_id}", json=mock_product)
+    requests_mock.delete(f"{API_URL}/products/{product_id}", json=mock_product)
+
     product = grab_store.show_product(product_id=product_id)
-    price = product.price
+    _product = grab_store.sell_product(product_id=product_id, money=product.price)
 
-    _product = grab_store.sell_product(product_id=product_id, money=price)
-
-    assert grab_store._money == pre_money + price
-    assert grab_store.show_product(product_id=product_id) is None
+    assert grab_store._money == pre_money + product.price
+    # assert grab_store.show_product(product_id=product_id) is None
 
 
-def test_sell_product_not_found(grab_store):
-    product_id = 3
-    product = grab_store.show_product(product_id=product_id)
+def test_sell_product_not_found(requests_mock, grab_store, mock_products):
+    product_id = 100
+    # product = grab_store.show_product(product_id=product_id)
+
+    mock_products = mock_products.get(product_id, None)
+
+    # mocking
+    requests_mock.get(f"{API_URL}/{product_id}", json=mock_products)
+    requests_mock.delete(f"{API_URL}/{product_id}", json=mock_products)
 
     with pytest.raises(Exception):
         grab_store.sell_product(product_id=product_id, money=0)
