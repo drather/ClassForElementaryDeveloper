@@ -1,6 +1,43 @@
+import dataclasses
 import requests
+from abc import abstractmethod, ABC
 
-from main import Store, Product
+
+class Store(ABC):
+    @abstractmethod
+    def __init__(self):
+        self._money = 0
+        self.name = ""
+        self._products = {}
+
+    @abstractmethod
+    def show_product(self, product_id):
+        """
+        사용자에게 상품 보여주는 메서드
+        :param product_id:
+        :return:
+        """
+        pass
+
+    @abstractmethod
+    def sell_product(self, product_id, money):
+        """
+        상점이 사용자에게 물건을 판매하는 행위
+        Validation 코드는 최소화
+        :param product_id:
+        :param money:
+        :return:
+        """
+        pass
+
+
+@dataclasses.dataclass
+class Product:
+    """
+    product 객체 생성을 쉽게하도록 하는 클래스
+    """
+    name: str
+    price: int
 
 
 class GrabStore(Store):
@@ -10,10 +47,14 @@ class GrabStore(Store):
         self.url = url
 
     def show_product(self, product_id):
+        """
+        외부 의존성이 있음.
+        테스트에는 mock 을 사용하고 싶다면?
+        """
         res = requests.get(f"{self.url}/products/{product_id}")
         product = res.json()
 
-        return Product(product["title"], price=product["price"])
+        return Product(name=product["name"], price=product["price"])
 
     def _take_money(self, money):
         self._money += money

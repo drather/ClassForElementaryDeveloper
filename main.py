@@ -21,48 +21,9 @@
 - 1강: DB 를 대체할 수 있는 fakestoreapi.com 에 requests 모듈을 통해 request, response 를 받는다.
 """
 
-import dataclasses
 import traceback
-from abc import ABC, abstractmethod
 
-from GrabRealStore import GrabStore
-
-
-@dataclasses.dataclass
-class Product:
-    """
-    product 객체 생성을 쉽게하도록 하는 클래스
-    """
-    name: str
-    price: int
-
-
-class Store(ABC):
-    @abstractmethod
-    def __init__(self):
-        self._money = 0
-        self.name = ""
-        self._products = {}
-
-    @abstractmethod
-    def show_product(self, product_id):
-        """
-        사용자에게 상품 보여주는 메서드
-        :param product_id:
-        :return:
-        """
-        pass
-
-    @abstractmethod
-    def sell_product(self, product_id, money):
-        """
-        상점이 사용자에게 물건을 판매하는 행위
-        Validation 코드는 최소화
-        :param product_id:
-        :param money:
-        :return:
-        """
-        pass
+from GrabRealStore import GrabStore, Product, Store
 
 
 class User:
@@ -119,12 +80,7 @@ class User:
 
 
 if __name__ == "__main__":
-    store = GrabStore(
-        products={
-            1: Product(name="키보드", price=30000),
-            2: Product(name="모니터", price=5000000)
-        }
-    )
+    store = GrabStore()
 
     user = User(money=100000, store=store)
     user.purchase_product(product_id=2)
